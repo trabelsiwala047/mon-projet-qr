@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
-// --- 1. PAGE LOGIN ---
+// --- 1. PAGE LOGIN (MODIFIÉE POUR ADMIN/ADMIN) ---
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [user, setUser] = useState(''); // baddelna email b-user
   const [pass, setPass] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    const isGmail = email.toLowerCase().endsWith('@gmail.com');
 
-    if (!email || !pass) {
-        alert("PLZ aamer el Email wel Password!");
-    } else if (!isGmail) {
-        alert("PLZ dakhil email gmail s7i7 (@gmail.com)!");
+    // Verification admin / admin
+    if (user === "admin" && pass === "admin") {
+      navigate('/generator');
     } else {
-        navigate('/generator');
+      alert("Accès refusé! Utilise 'admin' pour le nom d'utilisateur et le mot de passe.");
     }
   };
 
@@ -25,22 +23,22 @@ const LoginPage = () => {
       <div style={st.card}>
         <div style={{marginBottom: '30px'}}>
           <h1 style={st.welcomeText}>Welcome Back</h1>
-          <p style={{color: '#64748b', fontSize: '14px', marginTop: '8px'}}>Veuillez vous connecter</p>
+          <p style={{color: '#64748b', fontSize: '14px', marginTop: '8px'}}>Connectez-vous avec admin / admin</p>
         </div>
         <div style={st.inputGroup}>
-          <label style={st.label}>EMAIL</label>
+          <label style={st.label}>UTILISATEUR</label>
           <input 
-            type="email"
-            placeholder="example@gmail.com" 
+            type="text" // raddineha text mouch email
+            placeholder="admin" 
             style={st.input} 
-            onChange={e => setEmail(e.target.value)} 
+            onChange={e => setUser(e.target.value)} 
           />
         </div>
         <div style={st.inputGroup}>
           <label style={st.label}>PASSWORD</label>
           <input 
             type="password" 
-            placeholder="••••••••" 
+            placeholder="admin" 
             style={st.input} 
             onChange={e => setPass(e.target.value)} 
           />
@@ -60,7 +58,6 @@ const GeneratorPage = () => {
   const [showQR, setShowQR] = useState(false);
 
   const generateQR = async () => {
-    // --- CONDITION: LES CHAMPS L-KOL OBLIGATOIRE ---
     if (!formData.usr || !formData.ns || !formData.model || !formData.dept) {
         alert("PLZ aamer les champs l-kol (USR, NS, MODEL, DEPT) obligatoires !");
         return;

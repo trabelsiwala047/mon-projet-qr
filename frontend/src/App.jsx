@@ -10,54 +10,34 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [showActionZone, setShowActionZone] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('En service');
+  const [comment, setComment] = useState('');
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank', 'width=600,height=600');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>MISFAT - Sticker</title>
-          <style>
-            body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-            img { width: 6cm; height: 6cm; }
-          </style>
-        </head>
-        <body>
-          <img src="${qrCodeUrl}" onload="window.print(); window.close();" />
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
+  const isFormValid = genData.usr && genData.ns && genData.model && genData.dept;
 
-  const changeTab = (tabName) => {
-    setActiveTab(tabName);
-    setQrCodeUrl('');
-    setIsScanning(false);
-  };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (credentials.username === 'admin' && credentials.password === 'misfat2026') {
-      setIsLoggedIn(true);
-    } else { alert('Accès non autorisé'); }
-  };
-
+  // --- RECHERCHE ENRICHIE ---
   const handleSearch = async (sn) => {
     const targetSN = sn || searchTerm;
     if (!targetSN) return;
     try {
+      // Hna el API lezem y-rajja3 l-info el zayda (entity, purchase_date, type, id)
       const res = await fetch(`http://localhost:3000/api/search-glpi/${targetSN}`);
       const result = await res.json();
-      if (result.success) setSearchResult(result.data);
-      else { setSearchResult(null); alert('Equipement introuvable.'); }
-    } catch (err) { alert('Erreur serveur.'); }
+      if (result.success) { 
+        setSearchResult(result.data); 
+        setShowActionZone(false); 
+      } else { 
+        setSearchResult(null); 
+        alert('Asset non trouvé dans GLPI'); 
+      }
+    } catch (err) { alert('Erreur serveur'); }
   };
 
   useEffect(() => {
     let scanner = null;
     if (isLoggedIn && isScanning && activeTab === 'search') {
-      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      scanner = new Html5QrcodeScanner("reader", { fps: 20, qrbox: 250 });
       scanner.render((decodedText) => {
         setSearchTerm(decodedText);
         handleSearch(decodedText);
@@ -65,19 +45,36 @@ function App() {
         scanner.clear();
       }, (err) => {});
     }
-    return () => { if (scanner) scanner.clear().catch(() => {}); };
+    return () => { if (scanner) scanner.clear().catch(e => {}); };
   }, [isScanning, activeTab, isLoggedIn]);
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCredentials({ username: '', password: '' });
+    setGenData({ usr: '', ns: '', model: '', dept: '' });
+    setQrCodeUrl('');
+    setSearchResult(null);
+    setShowActionZone(false);
+    setSearchTerm('');
+    setIsScanning(false);
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank', 'width=600,height=600');
+    printWindow.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;height:100vh;"><img src="${qrCodeUrl}" style="width:6cm;height:6cm;image-rendering:pixelated;" onload="window.print();window.close();"/></body></html>`);
+    printWindow.document.close();
+  };
 
   if (!isLoggedIn) {
     return (
       <div style={styles.loginPage}>
         <div style={styles.loginCard}>
-          <div style={styles.brandIcon}>M</div>
-          <h1 style={{fontSize:'26px', fontWeight:800, margin:'10px 0'}}>MISFAT ASSET</h1>
-          <form onSubmit={handleLogin}>
-            <input type="text" placeholder="Utilisateur" style={styles.inputElite} onChange={(e) => setCredentials({...credentials, username: e.target.value})} />
-            <input type="password" placeholder="Mot de passe" style={{...styles.inputElite, marginTop:'15px'}} onChange={(e) => setCredentials({...credentials, password: e.target.value})} />
-            <button type="submit" style={styles.btnFull}>Se connecter</button>
+          <div style={styles.loginLogo}>M</div>
+          <h2 style={{color:'#fff', fontWeight:900, marginBottom:'30px'}}>MISFAT PORTAL</h2>
+          <form onSubmit={(e) => { e.preventDefault(); if(credentials.username === 'admin' && credentials.password === 'misfat2026') setIsLoggedIn(true); else alert('Erreur'); }}>
+            <input type="text" placeholder="Utilisateur" style={styles.loginInput} value={credentials.username} onChange={(e)=>setCredentials({...credentials, username:e.target.value})} />
+            <input type="password" placeholder="Mot de passe" style={{...styles.loginInput, marginTop:'15px'}} value={credentials.password} onChange={(e)=>setCredentials({...credentials, password:e.target.value})} />
+            <button type="submit" style={styles.btnAuth}>AUTHENTIFICATION</button>
           </form>
         </div>
       </div>
@@ -89,120 +86,130 @@ function App() {
       <style>
         {`
           @import url('https://rsms.me/inter/inter.css');
-          * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-          .nav-item { 
-            display: flex; align-items: center; gap: 12px; padding: 14px 20px;
-            color: #94a3b8; cursor: pointer; border-radius: 12px; transition: 0.3s;
-            border: none; background: none; width: 100%; font-size: 15px; font-weight: 500;
-          }
-          .nav-item.active { color: #fff; background: #3b82f6; box-shadow: 0 10px 20px rgba(59,130,246,0.3); }
-          .nav-item:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
-          
-          /* Table Style Enhancements */
-          .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          .data-table th { text-align: left; padding: 16px; font-size: 12px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; background: #fcfdfe; }
-          .data-table td { padding: 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
-          .status-badge { padding: 4px 10px; borderRadius: 20px; fontSize: 12px; fontWeight: 600; background: #dcfce7; color: #166534; }
+          * { font-family: 'Inter', sans-serif; box-sizing: border-box; outline: none; }
+          body { background: #f8fafc; margin: 0; }
+          .bento-card { background: #fff; border-radius: 30px; padding: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+          .nav-pill { padding: 15px 25px; margin: 5px 0; border-radius: 15px; border: none; background: transparent; color: #9ca3af; font-weight: 600; cursor: pointer; width: 100%; text-align: left; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+          .nav-pill.active { color: #fff; background: #3b82f6; }
+          .btn-logout-dark { width: 100%; padding: 14px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 15px; font-weight: 700; cursor: pointer; }
+          .btn-action-green { width: 100%; padding: 18px; background: #10b981; color: #fff; border: none; border-radius: 18px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
+          .btn-action-green:disabled { background: #f1f5f9; color: #cbd5e1; cursor: not-allowed; }
+          .input-bento { width: 100%; padding: 16px; border-radius: 15px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 14px; transition: 0.2s; }
+          .input-bento:focus { border-color: #3b82f6; background: #fff; }
+          .scan-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; }
+          .badge { padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+          .badge-blue { background: #eff6ff; color: #2563eb; }
+          .badge-green { background: #f0fdf4; color: #16a34a; }
+          .badge-gray { background: #f1f5f9; color: #64748b; }
+          .data-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+          .data-table th { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 0 15px; text-align: left; }
+          .data-table td { background: #fff; padding: 20px 15px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 13px; color: #1e293b; }
+          .data-table td:first-child { border-left: 1px solid #f1f5f9; border-radius: 15px 0 0 15px; }
+          .data-table td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 15px 15px 0; }
         `}
       </style>
 
-      <aside style={styles.sidebar}>
-        <div style={styles.sidebarHeader}>
-          <div style={styles.miniLogo}>M</div>
-          <span style={{fontWeight:800, fontSize:'20px'}}>MISFAT</span>
-        </div>
-        <div style={{flex:1, display:'flex', flexDirection:'column', gap:'10px', padding:'0 15px'}}>
-          <button onClick={() => changeTab('generate')} className={`nav-item ${activeTab==='generate' ? 'active':''}`}><span>🏷️</span> Stickers</button>
-          <button onClick={() => changeTab('search')} className={`nav-item ${activeTab==='search' ? 'active':''}`}><span>🔍</span> Inventaire</button>
-        </div>
-        <div style={{padding:'20px'}}><button onClick={() => setIsLoggedIn(false)} style={styles.logoutBtn}>Sortie</button></div>
+      {/* SIDEBAR GHMÏQA */}
+      <aside style={styles.sideMenu}>
+        <div style={styles.sideBrand}><div style={styles.brandBox}>M</div><span style={{fontWeight:900, fontSize:'22px', color:'#fff', letterSpacing:'-1px'}}>MISFAT</span></div>
+        <nav style={{padding:'0 20px', flex:1}}>
+          <button onClick={()=>setActiveTab('generate')} className={`nav-pill ${activeTab==='generate'?'active':''}`}>🏷️ Stickers Hub</button>
+          <button onClick={()=>setActiveTab('search')} className={`nav-pill ${activeTab==='search'?'active':''}`}>🔍 Smart Search</button>
+        </nav>
+        <div style={{padding:'20px'}}><button onClick={handleLogout} className="btn-logout-dark">🚪 Déconnexion</button></div>
       </aside>
 
-      <main style={styles.main}>
-        <div style={styles.header}>
-          <h2 style={{margin:0, fontSize:'28px', fontWeight:800}}>{activeTab === 'generate' ? 'Stickers' : 'Recherche GLPI'}</h2>
-        </div>
+      <main style={styles.content}>
+        <h1 style={{fontSize:'32px', fontWeight:900, color:'#111827', marginBottom:'35px'}}>{activeTab==='generate' ? 'Générateur de QR' : 'Explorateur GLPI'}</h1>
 
         {activeTab === 'generate' ? (
-          <div style={styles.card}>
-            <div style={styles.formGrid}>
-              <div style={styles.group}><label style={styles.lbl}>Usager</label><input value={genData.usr} onChange={(e)=>setGenData({...genData, usr:e.target.value})} style={styles.inputElite} /></div>
-              <div style={styles.group}><label style={styles.lbl}>N° Série</label><input value={genData.ns} onChange={(e)=>setGenData({...genData, ns:e.target.value})} style={styles.inputElite} /></div>
-              <div style={styles.group}><label style={styles.lbl}>Modèle</label><input value={genData.model} onChange={(e)=>setGenData({...genData, model:e.target.value})} style={styles.inputElite} /></div>
-              <div style={styles.group}><label style={styles.lbl}>Département</label><input value={genData.dept} onChange={(e)=>setGenData({...genData, dept:e.target.value})} style={styles.inputElite} /></div>
+          <div className="bento-card">
+            <div style={styles.bentoGrid}>
+              {[{id:'usr', l:'Propriétaire'}, {id:'ns', l:'S/N (Tag)'}, {id:'model', l:'Modèle'}, {id:'dept', l:'Département/Site'}].map((item) => (
+                <div key={item.id}>
+                  <label style={styles.bentoLabel}>{item.l}</label>
+                  <input className="input-bento" value={genData[item.id]} onChange={(e)=>setGenData({...genData, [item.id]:e.target.value})} />
+                </div>
+              ))}
             </div>
-            <button onClick={async () => {
-              const res = await fetch('http://localhost:3000/generate-qr', {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify(genData)
-              });
+            <button disabled={!isFormValid} onClick={async () => {
+              const res = await fetch('http://localhost:3000/generate-qr', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(genData) });
               const d = await res.json(); setQrCodeUrl(d.qrCodeUrl);
-            }} style={styles.btnPrimary}>Générer le Code QR</button>
-            
+            }} className="btn-action-green">
+              {isFormValid ? '✨ GÉNÉRER L\'ÉTIQUETTE QR' : '🔒 REMPLIR TOUS LES CHAMPS'}
+            </button>
             {qrCodeUrl && (
-              <div style={{marginTop:'30px', textAlign:'center'}}>
-                <div style={styles.qrContainer}><img src={qrCodeUrl} alt="Preview" style={{width:'180px'}} /></div>
-                <button onClick={handlePrint} style={styles.btnPrint}>🖨️ Imprimer Sticker</button>
+              <div style={{textAlign: 'center', marginTop: '40px'}}>
+                <div style={styles.qrGlass}><img src={qrCodeUrl} style={{width:'200px'}} alt="QR Code" /></div>
+                <div style={{marginTop: '25px'}}>
+                   <button onClick={handlePrint} className="btn-action-green" style={{width:'auto', padding:'15px 50px', margin: '0 auto'}}>🖨️ IMPRIMER L'ÉTIQUETTE</button>
+                </div>
               </div>
             )}
           </div>
         ) : (
           <div>
-            <div style={styles.card}>
-              <div style={{display:'flex', gap:'15px'}}>
+            <div className="bento-card" style={{padding:'25px 35px'}}>
+              <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
                 <div style={{position:'relative', flex:1}}>
-                  <input placeholder="Scanner ou Saisir S/N..." value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} onKeyDown={(e)=>e.key==='Enter'&&handleSearch()} style={styles.inputElite} />
-                  <button onClick={()=>setIsScanning(!isScanning)} style={styles.camBtn}>{isScanning ? '✕' : '📷'}</button>
+                  <input className="input-bento" placeholder="Scanner un sticker ou saisir S/N..." value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} />
+                  <button onClick={()=>setIsScanning(!isScanning)} className="scan-btn">{isScanning ? '✕' : '📸'}</button>
                 </div>
-                <button onClick={()=>handleSearch()} style={styles.btnDark}>Chercher</button>
+                <button onClick={()=>handleSearch()} style={styles.btnSearch}>TROUVER L'ASSET</button>
               </div>
-              {isScanning && <div id="reader" style={styles.scannerWrapper}></div>}
+              {isScanning && <div id="reader" style={{marginTop:'20px', borderRadius:'20px', overflow:'hidden', border:'2px solid #f1f5f9'}}></div>}
             </div>
 
             {searchResult && (
-              <div style={styles.card}>
-                <h3 style={{marginTop: 0, marginBottom: '20px', color: '#1e293b'}}>Résultats de l'Inventaire</h3>
+              <div style={{marginTop:'35px', animation: 'fadeIn 0.5s ease'}}>
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Usager</th>
-                      <th>N° Série</th>
-                      <th>Modèle / Type</th>
-                      <th>Lieu / Site</th>
-                      <th>Statut</th>
-                      <th>Action</th>
+                      <th>Usager</th><th>S/N Code</th><th>Modèle / Type</th><th>📍 Site</th><th>🏢 Entité</th><th>📅 Achat</th><th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{fontWeight:700}}>{searchResult.user || 'N/A'}</td>
-                      <td><code style={styles.snBadge}>{searchResult.ns}</code></td>
+                      <td style={{fontWeight:800}}>{searchResult.user}</td>
+                      <td><span className="badge badge-gray" style={{fontFamily:'monospace'}}>{searchResult.ns}</span></td>
                       <td>
-                        <div style={{fontWeight:600}}>{searchResult.model}</div>
-                        <div style={{fontSize:'12px', color:'#94a3b8'}}>{searchResult.type || 'Hardware'}</div>
+                        <div style={{fontWeight:700}}>{searchResult.model}</div>
+                        <div style={{fontSize:'11px', color:'#94a3b8'}}>{searchResult.type || 'Ordinateur'}</div>
                       </td>
-                      <td>{searchResult.location || 'Misfat HQ'}</td>
-                      <td><span className="status-badge">{searchResult.status || 'En Service'}</span></td>
-                      <td>
-                        <button 
-                          onClick={()=>{
-                            setGenData({
-                              usr: searchResult.user, 
-                              ns: searchResult.ns, 
-                              model: searchResult.model, 
-                              dept: searchResult.location
-                            }); 
-                            setActiveTab('generate'); 
-                            setQrCodeUrl('');
-                          }} 
-                          style={styles.btnTransfer}
-                        >
-                          Importer
-                        </button>
-                      </td>
+                      <td><span className="badge badge-blue">{searchResult.location}</span></td>
+                      <td><span className="badge badge-green">{searchResult.entity || 'MISFAT'}</span></td>
+                      <td style={{color:'#64748b'}}>{searchResult.purchase_date || 'N/A'}</td>
+                      <td><button onClick={()=>setShowActionZone(true)} style={styles.btnMiniValider}>VALIDER</button></td>
                     </tr>
                   </tbody>
                 </table>
+
+                {showActionZone && (
+                  <div className="bento-card" style={{marginTop:'25px', border:'2px solid #3b82f6', background: '#fcfdfe'}}>
+                    <div style={{display:'flex', gap:'30px'}}>
+                      <div style={{flex:1}}>
+                        <label style={styles.bentoLabel}>CHANGER L'ÉTAT</label>
+                        <select className="input-bento" value={selectedStatus} onChange={(e)=>setSelectedStatus(e.target.value)}>
+                          <option>✅ En service</option>
+                          <option>📦 En stock</option>
+                          <option>⚠️ En panne</option>
+                          <option>🔧 Maintenance</option>
+                        </select>
+                      </div>
+                      <div style={{flex:1.5}}>
+                        <label style={styles.bentoLabel}>COMMENTAIRE IT (HISTORIQUE)</label>
+                        <textarea className="input-bento" style={{height:'90px', resize:'none'}} placeholder="Détails techniques..." value={comment} onChange={(e)=>setComment(e.target.value)} />
+                      </div>
+                    </div>
+                    <div style={{textAlign:'right', marginTop:'25px'}}>
+                      <button onClick={()=>{
+                        setActiveTab('generate'); 
+                        setGenData({usr:searchResult.user, ns:searchResult.ns, model:searchResult.model, dept:searchResult.location}); 
+                        setQrCodeUrl('');
+                      }} style={styles.btnFinal}>CONFIRMER L'INVENTAIRE & GÉNÉRER QR</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -213,30 +220,22 @@ function App() {
 }
 
 const styles = {
-  loginPage: { height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' },
-  loginCard: { backgroundColor: '#fff', padding: '50px', borderRadius: '32px', width: '400px', textAlign: 'center' },
-  brandIcon: { width: '55px', height: '55px', background: '#3b82f6', borderRadius: '15px', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '26px' },
-  layout: { display: 'flex', height: '100vh', overflow:'hidden' },
-  sidebar: { width: '280px', background: '#0f172a', display: 'flex', flexDirection: 'column', color: '#fff' },
-  sidebarHeader: { padding: '40px 30px', display: 'flex', alignItems: 'center', gap: '15px' },
-  miniLogo: { padding: '10px 14px', background: '#3b82f6', borderRadius: '10px', fontWeight: 900 },
-  main: { flex: 1, padding: '40px 60px', overflowY: 'auto', backgroundColor: '#f8fafc' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' },
-  card: { background: '#fff', padding: '30px', borderRadius: '24px', border: '1px solid #e2e8f0', marginBottom: '30px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-  formGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '25px', marginBottom: '35px' },
-  group: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  lbl: { fontSize: '14px', fontWeight: 700, color: '#475569' },
-  inputElite: { padding: '14px 18px', borderRadius: '14px', border: '1px solid #e2e8f0', fontSize: '15px', width: '100%', outline: 'none' },
-  btnFull: { width: '100%', padding: '16px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: 700, marginTop: '25px', cursor: 'pointer' },
-  btnPrimary: { width: '100%', padding: '18px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '16px', cursor: 'pointer' },
-  btnDark: { padding: '0 30px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: 600, cursor: 'pointer' },
-  camBtn: { position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', fontSize: '20px', cursor: 'pointer' },
-  logoutBtn: { width: '100%', padding: '14px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' },
-  btnTransfer: { padding: '8px 16px', background: '#3b82f6', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#fff' },
-  snBadge: { background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', fontWeight: 600, color: '#475569' },
-  qrContainer: { display: 'inline-block', padding: '20px', background: '#fff', borderRadius: '20px', border: '1px solid #e2e8f0' },
-  btnPrint: { display: 'block', margin: '20px auto', padding: '16px 45px', background: '#10b981', color: '#fff', borderRadius: '16px', border: 'none', fontWeight: 700, cursor: 'pointer' },
-  scannerWrapper: { marginTop: '20px', borderRadius: '20px', overflow: 'hidden', border: '3px solid #3b82f6' }
+  layout: { display: 'flex', height: '100vh', overflow: 'hidden' },
+  sideMenu: { width: '280px', background: '#111827', display: 'flex', flexDirection: 'column' },
+  sideBrand: { padding: '45px 30px', display: 'flex', alignItems: 'center', gap: '15px' },
+  brandBox: { width:'42px', height:'42px', background:'#3b82f6', borderRadius:'12px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, fontSize:'20px' },
+  content: { flex: 1, padding: '40px 60px', overflowY: 'auto' },
+  bentoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '30px' },
+  bentoLabel: { fontSize: '11px', fontWeight: 900, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  qrGlass: { display: 'inline-block', padding: '25px', background: '#fff', borderRadius: '35px', border: '1px solid #f1f5f9', boxShadow: '0 20px 50px rgba(0,0,0,0.05)' },
+  btnSearch: { padding: '0 35px', height:'55px', background: '#111827', color: '#fff', border: 'none', borderRadius: '18px', fontWeight: 800, cursor: 'pointer', transition: '0.3s' },
+  btnMiniValider: { padding: '10px 22px', background: '#111827', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', fontSize:'11px' },
+  btnFinal: { padding: '16px 35px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 20px rgba(59, 130, 246, 0.15)' },
+  loginPage: { height:'100vh', width:'100vw', display:'flex', justifyContent:'center', alignItems:'center', background:'#f0f2f5' },
+  loginCard: { background:'#111827', padding:'60px', borderRadius:'45px', width:'420px', textAlign:'center', boxShadow:'0 40px 80px rgba(0,0,0,0.2)' },
+  loginLogo: { width:'70px', height:'70px', background:'#3b82f6', borderRadius:'20px', margin:'0 auto 25px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'30px', fontWeight:900 },
+  loginInput: { width:'100%', padding:'18px', borderRadius:'15px', border:'none', background:'rgba(255,255,255,0.05)', color:'#fff', textAlign:'center', fontSize: '15px' },
+  btnAuth: { width:'100%', marginTop:'25px', padding:'18px', background:'#3b82f6', color:'#fff', border:'none', borderRadius:'15px', fontWeight:900, cursor:'pointer' }
 };
 
 export default App;

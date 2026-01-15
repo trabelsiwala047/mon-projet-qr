@@ -79,11 +79,32 @@ const GeneratorPage = () => {
   if (showQR) {
     return (
       <div style={st.container}>
-        <div style={st.glassCard}>
-          <div style={st.qrContainer}>
+        {/* CSS Media Query bch nakhfiw el boutons wa9t el Print */}
+        <style>
+          {`
+            @media print {
+              .no-print { display: none !important; }
+              body { background: white !important; padding: 0 !important; margin: 0 !important; }
+              .printable-card { 
+                box-shadow: none !important; 
+                border: none !important; 
+                background: white !important;
+                backdrop-filter: none !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                width: 100% !important;
+              }
+              .qr-container-print { padding: 0 !important; border: none !important; }
+            }
+          `}
+        </style>
+
+        <div style={st.glassCard} className="printable-card">
+          <div style={st.qrContainer} className="qr-container-print">
             <img src={qrImageUrl} alt="QR" style={st.qrDisplay} />
           </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '15px', width: '100%'}}>
+          
+          <div className="no-print" style={{display: 'flex', flexDirection: 'column', gap: '15px', width: '100%'}}>
             <button onClick={() => window.print()} style={st.glowBtn}>IMPRIMER LE CODE</button>
             <button onClick={() => setShowQR(false)} style={st.ghostBtn}>RETOUR</button>
           </div>
@@ -117,7 +138,7 @@ const GeneratorPage = () => {
   );
 };
 
-// --- 3. MAIN APP COMPONENT ---
+// --- 3. EXPORT ---
 export default function App() {
   return (
     <Routes>
@@ -128,13 +149,13 @@ export default function App() {
   );
 }
 
-// --- 4. STYLES (PREMIUM CYBER BLUE) ---
+// --- 4. STYLES ---
 const st = {
   container: { 
     height: '100vh', width: '100vw', 
     background: 'radial-gradient(circle at top left, #1e293b, #0f172a, #020617)', 
     display: 'flex', justifyContent: 'center', alignItems: 'center', 
-    fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif', margin: 0, overflow: 'hidden'
+    fontFamily: '"Segoe UI", Roboto, sans-serif', margin: 0, overflow: 'hidden'
   },
   glassCard: { 
     background: 'rgba(30, 41, 59, 0.75)', 

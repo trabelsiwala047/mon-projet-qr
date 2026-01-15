@@ -1,74 +1,89 @@
 const express = require('express');
-const cors = require('cors');
 const QRCode = require('qrcode');
-const path = require('path');
+const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const csv = require('csv-parser');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const qrDir = path.join(__dirname, 'qrcodes');
-if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir);
-app.use('/qrcodes', express.static(qrDir));
+// Thabet elli el fichier glpi.csv m7atout ba7da server.js
+const CSV_FILE = path.join(__dirname, 'glpi.csv');
+const qrFolder = path.join(__dirname, 'qrcodes');
 
-// --- ROUTE 1: GENERATION QR ---
-app.post('/generate-qr', async (req, res) => {
-  try {
-    const { usr, ns, model, dept } = req.body;
-    const text = `User: ${usr}\nNS: ${ns}\nModel: ${model}\nDept: ${dept}`;
-    const fileName = `qr_${ns || Date.now()}.png`;
-    const filePath = path.join(qrDir, fileName);
-    await QRCode.toFile(filePath, text);
-    res.json({ qrCodeUrl: `http://127.0.0.1:3000/qrcodes/${fileName}` });
-  } catch (err) {
-    res.status(500).json({ error: "Erreur QR" });
-  }
+if (!fs.existsSync(qrFolder)) fs.mkdirSync(qrFolder);
+app.use('/qrcodes', express.static(qrFolder));
+
+// API Recherche Asset f-el CSV
+app.get('/api/search-glpi/:sn', (req, res) => {
+    const snToFind = req.params.sn.trim().toLowerCase();
+    const results = [];
+
+    if (!fs.existsSync(CSV_FILE)) {
+        return res.status(404).json({ success: false, message: "Fichier glpi.csv introuvable" });
+    }
+
+    console.log(`\n🔎 Recherche du S/N: ${snToFind}`);
+
+    fs.createReadStream(CSV_FILE)
+        .pipe(csv({ 
+            separator: ';', // 👈 Hna m-rigel 3la el point-virgule
+            mapHeaders: ({ header }) => header.trim() 
+        }))
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+            // Recheche b-el "Numero de serie"
+            const asset = results.find(item => {
+                const itemSN = item["Numero de serie"];
+                return itemSN && itemSN.toString().toLowerCase().includes(snToFind);
+            });
+
+            if (asset) {
+                console.log("✅ Asset trouvé:", asset["Model"]);
+                res.json({
+                    success: true,
+                    data: {
+                        ns: asset["Numero de serie"],
+                        model: asset["Model"],
+                        user: asset["Usager"] || "N/A",
+                        phone: asset["numero"] || "N/A",
+                        status: asset["Statut"] || "N/A",
+                        entity: "MISFAT"
+                    }
+                });
+            } else {
+                console.log("⚠️ Aucun asset trouvé.");
+                res.json({ success: false, message: "S/N introuvable dans le fichier CSV" });
+            }
+        });
 });
 
-// --- ROUTE 2: RECHERCHE GLPI (Version Robuste) ---
-app.get('/api/search-glpi/:ns', (req, res) => {
-  const nsToSearch = req.params.ns.trim();
-  const results = [];
+// API Génération QR Code
+app.post('/generate-qr', async (req, res) => {
+    const { usr, ns, model, status } = req.body;
+    if (!ns) return res.status(400).json({ error: "S/N manquant" });
 
-  if (!fs.existsSync('glpi.csv')) {
-    return res.status(500).json({ success: false, message: "Fichier glpi.csv introuvable" });
-  }
+    const fileName = `qr_${ns.replace(/[^a-z0-9]/gi, '_')}.png`;
+    const filePath = path.join(qrFolder, fileName);
+    
+    // El ma3loumet eli bech ykounou fi wast el QR Code
+    const qrData = `Model: ${model}\nSN: ${ns}\nUser: ${usr}\nStatus: ${status}`;
 
-  fs.createReadStream('glpi.csv')
-    .pipe(csv({ separator: ';' })) // Thabbet dima f-el Notepad (';' wala ',')
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-      // Force Search: Nlawjou f-el row lkol 3la el NS mte3ek
-      const item = results.find(row => {
-        return Object.values(row).some(val => 
-          val && val.toString().trim() === nsToSearch
-        );
-      });
-
-      if (item) {
-        console.log("✅ Trouvé:", item);
-        res.json({
-          success: true,
-          data: {
-            ns: nsToSearch,
-            user: item['Utilisateur'] || "Inconnu",
-            model: item['Type'] || "PC",
-            last_date: item['Dernire modification'] || "N/A"
-          }
+    try {
+        await QRCode.toFile(filePath, qrData, { 
+            width: 300,
+            color: { dark: '#000000', light: '#ffffff' }
         });
-      } else {
-        console.log("❌ Non trouvé pour:", nsToSearch);
-        res.status(404).json({ success: false, message: "Numéro de série introuvable." });
-      }
-    });
+        res.json({ qrCodeUrl: `http://localhost:3000/qrcodes/${fileName}` });
+    } catch (err) {
+        res.status(500).json({ error: "Erreur QR" });
+    }
 });
 
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`=========================================`);
-  console.log(`Backend MISFAT Khaddem: http://localhost:${PORT}`);
-  console.log(`Test: http://localhost:3000/api/search-glpi/SN2149630092`);
-  console.log(`=========================================`);
+    console.log(`🚀 SERVEUR CSV PRÊT: http://localhost:${PORT}`);
+    console.log(`📂 Lecture du fichier: ${CSV_FILE}`);
 });

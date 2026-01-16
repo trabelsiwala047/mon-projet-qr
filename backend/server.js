@@ -1,68 +1,54 @@
 const express = require('express');
-const QRCode = require('qrcode');
+const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const csv = require('csv-parser');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const CSV_FILE = path.join(__dirname, 'glpi.csv');
-const qrFolder = path.join(__dirname, 'qrcodes');
-
-if (!fs.existsSync(qrFolder)) fs.mkdirSync(qrFolder);
-app.use('/qrcodes', express.static(qrFolder));
-
-app.get('/api/search-glpi/:sn', (req, res) => {
-    const snToFind = req.params.sn.trim().toLowerCase();
-    const results = [];
-
-    if (!fs.existsSync(CSV_FILE)) {
-        return res.status(404).json({ success: false, message: "Fichier CSV introuvable" });
-    }
-
-    fs.createReadStream(CSV_FILE)
-        .pipe(csv({ separator: ';', headers: false })) // Headers false bech n-esta3mlou el indices
-        .on('data', (data) => results.push(data))
-        .on('end', () => {
-            // Recheche f-el Index 8 (S/N)
-            const asset = results.find(line => {
-                const itemSN = line[8]; 
-                return itemSN && itemSN.toString().trim().toLowerCase() === snToFind;
-            });
-
-            if (asset) {
-                res.json({
-                    success: true,
-                    data: {
-                        model: asset[6] || "N/A",  // Index 6
-                        status: asset[7] || "N/A", // Index 7
-                        ns: asset[8] || "N/A",     // Index 8
-                        user: asset[9] || "N/A",   // Index 9
-                        entity: asset[1] || "N/A", // Index 1
-                        location: "Misfat"
-                    }
-                });
-            } else {
-                res.status(404).json({ success: false, message: "Asset non trouvé" });
-            }
-        });
+// Connexion l-el base misfat.db
+const db = new sqlite3.Database('./misfat.db', (err) => {
+    if (err) console.error("❌ Erreur SQLite:", err.message);
+    else console.log("✅ Connexion à SQLite réussie (misfat.db)");
 });
 
-app.post('/generate-qr', async (req, res) => {
-    const { ns, model, usr, dept } = req.body;
-    const fileName = `qr_${ns.replace(/[^a-z0-9]/gi, '_')}.png`;
-    const filePath = path.join(qrFolder, fileName);
-    const qrData = `Model: ${model}\nSN: ${ns}\nUser: ${usr}\nDept: ${dept}`;
-
-    try {
-        await QRCode.toFile(filePath, qrData);
-        res.json({ qrCodeUrl: `http://localhost:3000/qrcodes/${fileName}` });
-    } catch (err) {
-        res.status(500).json({ error: "Erreur QR" });
-    }
+// ROUTE 1: Recherche
+app.get('/api/asset/:sn', (req, res) => {
+    const serial = req.params.sn;
+    const sql = "SELECT * FROM assets WHERE sn = ?";
+    db.get(sql, [serial], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (row) res.json(row);
+        else res.status(404).json({ message: "Asset non trouvé" });
+    });
 });
 
-app.listen(3000, () => console.log('🚀 Backend Misfat Ready on Port 3000'));
+// ROUTE 2: Update Statut (El s-hi7a)
+app.post('/api/asset/update', (req, res) => {
+    const { sn, statut } = req.body;
+    console.log(`📝 Commande reçue : Update ${sn} vers ${statut}`);
+
+    const sql = "UPDATE assets SET statut = ? WHERE sn = ?";
+    db.run(sql, [statut, sn], function(err) {
+        if (err) {
+            console.error("❌ Erreur SQL:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        if (this.changes > 0) {
+            console.log("✅ Base de données mise à jour !");
+            res.json({ success: true, message: "Statut mis à jour !" });
+        } else {
+            res.status(404).json({ success: false, message: "Asset non trouvé" });
+        }
+    });
+});
+
+// ROUTE 3: QR Generator (API Simulée)
+app.post('/generate-qr', (req, res) => {
+    const { ns } = req.body;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ns}`;
+    res.json({ qrCodeUrl });
+});
+
+const PORT = 3001;
+app.listen(PORT, () => console.log(`🚀 Server khaddem 3al port ${PORT}`));

@@ -16,22 +16,22 @@ function App() {
 
   const isFormValid = genData.usr && genData.ns && genData.model && genData.dept;
 
-  // --- RECHERCHE ENRICHIE ---
+  // --- RECHERCHE ENRICHIE (FIXED) ---
   const handleSearch = async (sn) => {
     const targetSN = sn || searchTerm;
     if (!targetSN) return;
     try {
-      // Hna el API lezem y-rajja3 l-info el zayda (entity, purchase_date, type, id)
-      const res = await fetch(`http://localhost:3000/api/search-glpi/${targetSN}`);
+      // ✅ Testa3mel Backticks s-hi7a hna
+      const res = await fetch(`http://localhost:3000/api/search-glpi/${targetSN.trim()}`);
       const result = await res.json();
       if (result.success) { 
         setSearchResult(result.data); 
         setShowActionZone(false); 
       } else { 
         setSearchResult(null); 
-        alert('Asset non trouvé dans GLPI'); 
+        alert('Asset non trouvé dans le fichier CSV'); 
       }
-    } catch (err) { alert('Erreur serveur'); }
+    } catch (err) { alert('Erreur serveur: Verifier que le backend est lancé'); }
   };
 
   useEffect(() => {
@@ -109,7 +109,6 @@ function App() {
         `}
       </style>
 
-      {/* SIDEBAR GHMÏQA */}
       <aside style={styles.sideMenu}>
         <div style={styles.sideBrand}><div style={styles.brandBox}>M</div><span style={{fontWeight:900, fontSize:'22px', color:'#fff', letterSpacing:'-1px'}}>MISFAT</span></div>
         <nav style={{padding:'0 20px', flex:1}}>
@@ -125,7 +124,7 @@ function App() {
         {activeTab === 'generate' ? (
           <div className="bento-card">
             <div style={styles.bentoGrid}>
-              {[{id:'usr', l:'Propriétaire'}, {id:'ns', l:'S/N (Tag)'}, {id:'model', l:'Modèle'}, {id:'dept', l:'Département/Site'}].map((item) => (
+              {[{id:'usr', l:'Propriétaire (Usager)'}, {id:'ns', l:'S/N (Code)'}, {id:'model', l:'Modèle'}, {id:'dept', l:'Entité/Site'}].map((item) => (
                 <div key={item.id}>
                   <label style={styles.bentoLabel}>{item.l}</label>
                   <input className="input-bento" value={genData[item.id]} onChange={(e)=>setGenData({...genData, [item.id]:e.target.value})} />
@@ -161,24 +160,23 @@ function App() {
             </div>
 
             {searchResult && (
-              <div style={{marginTop:'35px', animation: 'fadeIn 0.5s ease'}}>
+              <div style={{marginTop:'35px'}}>
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Usager</th><th>S/N Code</th><th>Modèle / Type</th><th>📍 Site</th><th>🏢 Entité</th><th>📅 Achat</th><th>Action</th>
+                      <th>Info / Usager</th><th>S/N Code</th><th>Modèle / Fabricant</th><th>📍 État</th><th>🏢 Entité</th><th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{fontWeight:800}}>{searchResult.user}</td>
+                      <td style={{fontWeight:800}}>{searchResult.user || "N/A"}</td>
                       <td><span className="badge badge-gray" style={{fontFamily:'monospace'}}>{searchResult.ns}</span></td>
                       <td>
                         <div style={{fontWeight:700}}>{searchResult.model}</div>
-                        <div style={{fontSize:'11px', color:'#94a3b8'}}>{searchResult.type || 'Ordinateur'}</div>
+                        <div style={{fontSize:'11px', color:'#94a3b8'}}>{searchResult.entity}</div>
                       </td>
-                      <td><span className="badge badge-blue">{searchResult.location}</span></td>
-                      <td><span className="badge badge-green">{searchResult.entity || 'MISFAT'}</span></td>
-                      <td style={{color:'#64748b'}}>{searchResult.purchase_date || 'N/A'}</td>
+                      <td><span className="badge badge-blue">{searchResult.status}</span></td>
+                      <td><span className="badge badge-green">MISFAT</span></td>
                       <td><button onClick={()=>setShowActionZone(true)} style={styles.btnMiniValider}>VALIDER</button></td>
                     </tr>
                   </tbody>
@@ -204,9 +202,14 @@ function App() {
                     <div style={{textAlign:'right', marginTop:'25px'}}>
                       <button onClick={()=>{
                         setActiveTab('generate'); 
-                        setGenData({usr:searchResult.user, ns:searchResult.ns, model:searchResult.model, dept:searchResult.location}); 
+                        setGenData({
+                          usr: searchResult.user, 
+                          ns: searchResult.ns, 
+                          model: searchResult.model, 
+                          dept: searchResult.entity
+                        }); 
                         setQrCodeUrl('');
-                      }} style={styles.btnFinal}>CONFIRMER L'INVENTAIRE & GÉNÉRER QR</button>
+                      }} style={styles.btnFinal}>CONFIRMER & ALLER AU GÉNÉRATEUR</button>
                     </div>
                   </div>
                 )}
@@ -219,6 +222,7 @@ function App() {
   );
 }
 
+// Les styles restent les mêmes que les tiens
 const styles = {
   layout: { display: 'flex', height: '100vh', overflow: 'hidden' },
   sideMenu: { width: '280px', background: '#111827', display: 'flex', flexDirection: 'column' },
@@ -228,14 +232,14 @@ const styles = {
   bentoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '30px' },
   bentoLabel: { fontSize: '11px', fontWeight: 900, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' },
   qrGlass: { display: 'inline-block', padding: '25px', background: '#fff', borderRadius: '35px', border: '1px solid #f1f5f9', boxShadow: '0 20px 50px rgba(0,0,0,0.05)' },
-  btnSearch: { padding: '0 35px', height:'55px', background: '#111827', color: '#fff', border: 'none', borderRadius: '18px', fontWeight: 800, cursor: 'pointer', transition: '0.3s' },
+  btnSearch: { padding: '0 35px', height:'55px', background: '#111827', color: '#fff', border: 'none', borderRadius: '18px', fontWeight: 800, cursor: 'pointer' },
   btnMiniValider: { padding: '10px 22px', background: '#111827', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', fontSize:'11px' },
-  btnFinal: { padding: '16px 35px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 20px rgba(59, 130, 246, 0.15)' },
+  btnFinal: { padding: '16px 35px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: 800, cursor: 'pointer' },
   loginPage: { height:'100vh', width:'100vw', display:'flex', justifyContent:'center', alignItems:'center', background:'#f0f2f5' },
-  loginCard: { background:'#111827', padding:'60px', borderRadius:'45px', width:'420px', textAlign:'center', boxShadow:'0 40px 80px rgba(0,0,0,0.2)' },
+  loginCard: { background:'#111827', padding:'60px', borderRadius:'45px', width:'420px', textAlign:'center' },
   loginLogo: { width:'70px', height:'70px', background:'#3b82f6', borderRadius:'20px', margin:'0 auto 25px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'30px', fontWeight:900 },
-  loginInput: { width:'100%', padding:'18px', borderRadius:'15px', border:'none', background:'rgba(255,255,255,0.05)', color:'#fff', textAlign:'center', fontSize: '15px' },
-  btnAuth: { width:'100%', marginTop:'25px', padding:'18px', background:'#3b82f6', color:'#fff', border:'none', borderRadius:'15px', fontWeight:900, cursor:'pointer' }
+  loginInput: { width:'100%', padding:'18px', borderRadius:'15px', border:'none', background:'rgba(255,255,255,0.05)', color:'#fff', textAlign:'center' },
+  btnAuth: { width:'100%', marginTop:'25px', padding:'18px', background:'#3b82f6', color:'#fff', border:'none', borderRadius:'15px', fontWeight:900 }
 };
 
 export default App;

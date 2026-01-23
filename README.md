@@ -2,7 +2,12 @@
 
 A professional Full-Stack IT Inventory solution built for **MISFAT**, featuring a modern UI, real-time QR Code mapping, and secure SQL Server integration.
 ---
+---
 
+## 📸 Aperçu de l'interface
+![Login Page](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/login.png?raw=true)
+
+---
 ## 📖 1. Introduction
 **MISFAT SECURE** est une solution logicielle industrielle développée pour optimiser le cycle de vie du matériel informatique au sein de l'entreprise. Contrairement aux systèmes de gestion classiques, cette plateforme intègre une technologie de **QR Code Mapping** qui lie chaque composant physique à une entrée numérique dynamique dans une base de données centralisée. L'objectif est de réduire de 90% les erreurs de saisie manuelle et de fournir une visibilité instantanée sur l'état du parc.
 
@@ -23,10 +28,18 @@ Nous avons utilisé des fonctionnalités avancées de React pour garantir une in
 * 🗄️ **SQL Server (mssql) :** Système de gestion de base de données relationnelle pour assurer la persistance des données.
 
 ---
+---
+
+## 📊 Dashboard de Gestion
+![Main Dashboard](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/dashboard.png?raw=true)
+
+---
+
 
 ## 💻 3. Analyse du Code : API Backend (Node.js)
 
-
+### 📸 Résultat du Scan (Mise à jour)
+![Scan Result](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/scan_result.png?raw=true)
 
 /**
  * EXPLICATION DE L'API :
@@ -70,6 +83,9 @@ app.post('/api/asset/update', async (req, res) => {
 
 
 L'application repose sur une base de données **Relational SQL** structurée avec deux tables principales pour assurer la sécurité et la traçabilité :
+
+### 🗄️ Schéma des Tables (SQL Server)
+![Database Schema](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/db_tables.png?raw=true)
 
 ### 🔹 Table `users` (Authentification)
 Utilisée par le Backend pour vérifier les identifiants lors de la connexion.

@@ -1,11 +1,16 @@
 const express = require('express');
+<<<<<<< HEAD
 const sql = require('mssql/msnodesqlv8');
+=======
+const QRCode = require('qrcode');
+>>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+<<<<<<< HEAD
 const config = {
     connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-7MGLSR7;Database=ms_devices;Trusted_Connection=yes;',
 };
@@ -62,3 +67,18 @@ const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`🚀 Backend khaddem 3al ${PORT}`);
 });
+=======
+app.post('/generate-qr', async (req, res) => {
+    const { usr, ns, model, dept } = req.body;
+    const dataString = `USR: ${usr}\nNS: ${ns}\nModel: ${model}\nDept: ${dept}`;
+    try {
+        // HEDHI EL FAZA EL GARANTIE:
+        const qrDataUrl = await QRCode.toDataURL(dataString);
+        res.json({ qrCodeUrl: qrDataUrl });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur' });
+    }
+});
+
+app.listen(3000, () => console.log("✅ Backend Ready on 3000"));
+>>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602

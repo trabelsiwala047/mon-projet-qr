@@ -22,6 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+<<<<<<< HEAD
 
 
 # QR Codes temporaires
@@ -31,3 +32,5 @@ backend/qrcodes/*.png
 
 .env
 .env.local
+=======
+>>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602

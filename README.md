@@ -138,6 +138,7 @@ node backend/server.js
 # Terminal 2:
 npm run dev
 ---
+```
 
 ---
 

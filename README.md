@@ -85,7 +85,7 @@ app.post('/api/asset/update', async (req, res) => {
 L'application repose sur une base de données **Relational SQL** structurée avec deux tables principales pour assurer la sécurité et la traçabilité :
 
 ### 🗄️ Schéma des Tables (SQL Server)
-![Database Schema](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/db_tables.png?raw=true)
+![Database Schema](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/db_tables1.png?raw=true)
 
 ### 🔹 Table `users` (Authentification)
 Utilisée par le Backend pour vérifier les identifiants lors de la connexion.

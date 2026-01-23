@@ -5,7 +5,7 @@ A professional Full-Stack IT Inventory solution built for **MISFAT**, featuring 
 ---
 
 ## 📸 Aperçu de l'interface
-![Login Page](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/login.png?raw=true)
+![Login Page](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/login.png?raw=true)
 
 ---
 ## 📖 1. Introduction
@@ -31,7 +31,7 @@ Nous avons utilisé des fonctionnalités avancées de React pour garantir une in
 ---
 
 ## 📊 Dashboard de Gestion
-![Main Dashboard](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/dashboard.png?raw=true)
+![Main Dashboard](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/dashboard.png?raw=true)
 
 ---
 
@@ -39,7 +39,7 @@ Nous avons utilisé des fonctionnalités avancées de React pour garantir une in
 ## 💻 3. Analyse du Code : API Backend (Node.js)
 
 ### 📸 Résultat du Scan (Mise à jour)
-![Scan Result](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/scan_result.png?raw=true)
+![Scan Result](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/scan_result.png?raw=true)
 
 /**
  * EXPLICATION DE L'API :
@@ -85,7 +85,7 @@ app.post('/api/asset/update', async (req, res) => {
 L'application repose sur une base de données **Relational SQL** structurée avec deux tables principales pour assurer la sécurité et la traçabilité :
 
 ### 🗄️ Schéma des Tables (SQL Server)
-![Database Schema](https://github.com/trabelsiwala047/mon-projet-qr/blob/main/db_tables.png?raw=true)
+![Database Schema](https://github.com/trabelsiwala047/mon-projet-qr/blob/master/db_tables.png?raw=true)
 
 ### 🔹 Table `users` (Authentification)
 Utilisée par le Backend pour vérifier les identifiants lors de la connexion.

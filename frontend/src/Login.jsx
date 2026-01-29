@@ -1,23 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // 1. Zid hatha
 
 const Login = () => {
   const navigate = useNavigate();
-
-  // Les states bch ncheddu chnowa yiktib el user
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e) => {
-    e.preventDefault(); // n-wa9fu el refresh mta3 el page
+  const handleLogin = async (e) => { // 2. Rodd-ha async
+    e.preventDefault();
+    setError(""); // Reset error list
 
-    // El verification elli t7eb 3liha: admin / admin
-    if (email === "admin" && password === "admin") {
-      setError(""); 
-      navigate('/generator'); // ken s7a7 yemchi lel generator
-    } else {
-      setError("Email ou mot de passe incorrect !"); // ken ghalat i-talla3 erreur
+    try {
+      // 3. Kallem el Backend mte3ek (Port 3001)
+      const response = await axios.post('http://localhost:3001/api/login', {
+        email: email,
+        password: password
+      });
+
+      if (response.data.token) {
+        // 4. Khabi el Token w el Role
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+
+        // 5. Direction حسب el role
+        if (response.data.role === 'admin') {
+          navigate('/generator'); // Walla el dashboard mta el admin
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    } catch (err) {
+      // 6. Ken el backend mahouch khadem walla el login ghalat
+      if (!err.response) {
+        setError("Erreur: Le serveur backend (3001) ne répond pas !");
+      } else {
+        setError(err.response.data.message || "Email ou mot de passe incorrect !");
+      }
     }
   };
 
@@ -30,24 +50,25 @@ const Login = () => {
         </div>
         <p>Connectez-vous pour gérer les équipements</p>
 
-        {/* Ken famma erreur yitla3 houni b-el a7mar */}
-        {error && <p style={{ 
-          color: '#ff4d4d', 
-          backgroundColor: '#ffe6e6', 
-          padding: '10px', 
-          borderRadius: '5px', 
-          fontSize: '13px',
-          textAlign: 'center',
-          width: '100%',
-          marginBottom: '15px'
-        }}>{error}</p>}
+        {error && (
+          <p style={{ 
+            color: '#ff4d4d', 
+            backgroundColor: '#ffe6e6', 
+            padding: '10px', 
+            borderRadius: '5px', 
+            fontSize: '13px',
+            textAlign: 'center',
+            width: '100%',
+            marginBottom: '15px'
+          }}>{error}</p>
+        )}
 
         <form onSubmit={handleLogin} style={{ width: '100%' }}>
           <div className="input-group">
             <label>UTILISATEUR (OU EMAIL)</label>
             <input 
               type="text" 
-              placeholder="admin" 
+              placeholder="votre email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required 
@@ -58,7 +79,7 @@ const Login = () => {
             <label>MOT DE PASSE</label>
             <input 
               type="password" 
-              placeholder="admin" 
+              placeholder="••••••••" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 

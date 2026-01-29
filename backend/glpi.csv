@@ -1220,8 +1220,4 @@ WS5-PCS1;Groupe Misfat Filtration;1 330; ;Dell Inc.;Desktop;Precision 5820 Tower
 WS5-PCS2;Groupe Misfat Filtration;1 331; ;Dell Inc.;Desktop;Precision 3660;En Service;4S72D14;;15/01/2026 08:43;GLPI Native Inventory;;;Non;;5 247 MHz;16 Gio;13th Gen Intel Core i7-13700K
 YASMATI;Groupe Misfat Filtration;366;MohamedYassine Smati;Dell Inc.;Mini Tower;Optiplex 3020;En Service;HKQ5Q02;1042019;15/01/2026 08:50;GLPI Native Inventory;7353;1400284;Non;;3 200 MHz;8 Gio;Intel Core i5-4570 CPU @ 3.20GHz
 YBOUCHAMI1;Groupe Misfat Filtration;1 317;Yassmine Bouchemi;Dell Inc.;Desktop;OptiPlex Tower Plus 7020;En Service;4KR8B44;;15/01/2026 07:35;GLPI Native Inventory;19619;FAC/2025/000521;Non;;5 247 MHz;32 Gio;Intel Core i7-14700
-YHmaidi;Groupe Misfat Filtration;160;Yassine Hmaidi;Dell Inc.;Tower;PRECISION T3600;En Service;6Y93H5J;1042019;15/01/2026 08:17;GLPI Native Inventory;5338;12F22710;Non;;3 000 MHz;32 Gio;Xeon Dual<br>Intel Xeon CPU E5-1607 0 @ 3.00GH
-ZBARKOUTI;Groupe Misfat Filtration;816;Zied Barkouti;Dell Inc.;Desktop;Optiplex 5070;En Service;9V9FR53;;15/01/2026 08:21;GLPI Native Inventory;14399;F21016859;Non;;3 000 MHz;16 Gio;Intel Core i5-9500 CPU @ 3.00GHz
-ZBENCHAABEN;Groupe Misfat Filtration;554;chaaben Zahra;Dell Inc.;Desktop;Optiplex 7040;En Service;2YCV982;1042019;15/01/2026 07:37;GLPI Native Inventory;10506;F17036281;Non;;3 150 MHz;32 Gio;Core i5<br>Intel Core i5-6500 CPU @ 3.20GHz
-ZETAFAX_1258;Groupe Misfat Filtration;418;=>GLPI INFORMATIQUE;NEC;Serveur;Powermate ML7;Hors Service;3,91E+17;1042019;04/06/2025 15:00;;1258;FAD05000836;Non;;;;
-ZLouati;Groupe Misfat Filtration;155;Zoubeir Louati;Dell Inc.;Tower;PRECISION T3600;Utilisation Provisoire > Disponible Chez Sce info;3Y93H5J;1042019;15/01/2026 08:51;GLPI Native Inventory;5337;12F22710;Non;;3 000 MHz;32 Gio;Xeon Dual<br>Intel Xeon CPU E5-1607 0 @ 3.00GH
+YHmaidi;Groupe Misfat Filtration;160;Yassine Hmaidi;Dell Inc.;Tower;PRECI

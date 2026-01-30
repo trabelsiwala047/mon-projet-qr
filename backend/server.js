@@ -1,24 +1,28 @@
 const express = require('express');
-<<<<<<< HEAD
-const sql = require('mssql/msnodesqlv8');
-=======
+const sql = require('mssql'); // Na7ina msnodesqlv8 khaterha mta' Windows barka
 const QRCode = require('qrcode');
->>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-<<<<<<< HEAD
+// --- 🛠️ CONFIG DATABASE (Lezem t7ott el lien mta' database cloud hna) ---
 const config = {
-    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=DESKTOP-7MGLSR7;Database=ms_devices;Trusted_Connection=yes;',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER, 
+    database: process.env.DB_NAME,
+    options: {
+        encrypt: true, // IMPORTANT lel Cloud
+        trustServerCertificate: true
+    }
 };
 
 sql.connect(config).then(pool => {
     console.log("✅ Backend mrigel m3a SQL Server");
 
-    // --- 🔐 LOGIN API ---
     app.post('/api/login', async (req, res) => {
         try {
             const { username, password } = req.body;
@@ -37,7 +41,6 @@ sql.connect(config).then(pool => {
         }
     });
 
-    // --- 🔍 RECHERCHE ASSET ---
     app.get('/api/asset/:sn', async (req, res) => {
         try {
             const result = await pool.request()
@@ -47,7 +50,6 @@ sql.connect(config).then(pool => {
         } catch (err) { res.status(500).send(err.message); }
     });
 
-    // --- 💾 UPDATE ASSET ---
     app.post('/api/asset/update', async (req, res) => {
         try {
             const { sn, statut, it_comment } = req.body;
@@ -62,17 +64,10 @@ sql.connect(config).then(pool => {
 
 }).catch(err => console.log("❌ SQL Error:", err));
 
-// --- 🚀 KHADDEM EL SERVER ---
-const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`🚀 Backend khaddem 3al ${PORT}`);
-});
-=======
 app.post('/generate-qr', async (req, res) => {
     const { usr, ns, model, dept } = req.body;
     const dataString = `USR: ${usr}\nNS: ${ns}\nModel: ${model}\nDept: ${dept}`;
     try {
-        // HEDHI EL FAZA EL GARANTIE:
         const qrDataUrl = await QRCode.toDataURL(dataString);
         res.json({ qrCodeUrl: qrDataUrl });
     } catch (err) {
@@ -80,5 +75,8 @@ app.post('/generate-qr', async (req, res) => {
     }
 });
 
-app.listen(3000, () => console.log("✅ Backend Ready on 3000"));
->>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602
+// --- 🚀 KHADDEM EL SERVER (Tariqa s7i7a) ---
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`🚀 Backend khaddem 3al Port ${PORT}`);
+});

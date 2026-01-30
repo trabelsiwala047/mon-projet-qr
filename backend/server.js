@@ -6,16 +6,16 @@ require('dotenv').config();
 
 const app = express();
 
-// --- 1. CONFIG CORS (Zid lien Vercel mta3ek hna) ---
+// --- 1. CONFIG CORS (Houni el s7i7) ---
 app.use(cors({
-    origin: ['https://mon-projet-qr.vercel.app', 'http://localhost:5173'], // Zid el URL mta3ek mte3 vercel
+    origin: ['https://mon-projet-qr.vercel.app', 'http://localhost:5173'], // <-- BADAL HATHA b'lien Vercel mta3ek
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
 
 app.use(express.json());
 
-// --- 2. CONFIG DATABASE ---
+// --- 2. CONFIG DATABASE (Nesta3mlou process.env bech makhfi) ---
 const config = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -27,7 +27,7 @@ const config = {
     }
 };
 
-// Nesta3mlou Connection Pool bch el performance tkoun khir
+// Connection Pool bech el server mayti7ch m3a barcha users
 const poolPromise = new sql.ConnectionPool(config)
     .connect()
     .then(pool => {
@@ -94,9 +94,8 @@ app.post('/generate-qr', async (req, res) => {
     }
 });
 
-// --- 4. EXPORT / LISTEN (Important lel hosting) ---
+// --- 4. EXPORT / LISTEN (Important lel Cloud) ---
 const PORT = process.env.PORT || 3001;
-// Khallih y'asmi3 3al 0.0.0.0 bch l'internet tchoufou
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Backend khaddem 3al Port ${PORT}`);
 });

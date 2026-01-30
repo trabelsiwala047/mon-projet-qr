@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import React, { useState, useEffect } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -135,7 +135,7 @@ function App() {
             <input type="password" placeholder="Mot de passe" style={{...styles.loginInput, marginTop:'15px'}} value={credentials.password} onChange={(e)=>setCredentials({...credentials, password:e.target.value})} required />
             <button type="submit" style={styles.btnAuth}>LOGIN</button>
           </form>
-=======
+
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
@@ -246,13 +246,12 @@ const GeneratorPage = () => {
             <button onClick={() => window.print()} style={st.glowBtn}>IMPRIMER LE CODE</button>
             <button onClick={() => setShowQR(false)} style={st.ghostBtn}>RETOUR</button>
           </div>
->>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602
+
         </div>
       </div>
     );
   }
 
-<<<<<<< HEAD
   // --- 💻 UI: MAIN APP ---
   return (
     <div style={styles.layout}>
@@ -358,7 +357,7 @@ const styles = {
 };
 
 export default App;
-=======
+
   return (
     <div style={st.container}>
       <div style={{...st.glassCard, width: '650px'}}>
@@ -446,4 +445,4 @@ const st = {
   },
   qrDisplay: { width: '260px', height: '260px', display: 'block', margin: '0 auto' }
 };
->>>>>>> 59f0be858110a6e18227c1c55a34fd17d5fd7602
+

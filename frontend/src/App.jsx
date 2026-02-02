@@ -3,6 +3,9 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import { QRCodeCanvas } from 'qrcode.react';
 import axios from 'axios';
 
+// --- EL BADDILA EL MOHIMMA: El lien mta' Render ---
+const API_URL = "https://mon-projet-qr.onrender.com";
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -24,7 +27,7 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3001/login', {
+      const res = await axios.post(`${API_URL}/login`, {
         email: credentials.username,
         password: credentials.password
       });
@@ -33,9 +36,8 @@ function App() {
         localStorage.setItem('role', res.data.role);
         setIsLoggedIn(true);
 
-        // --- ZIEDA: Pop-up selon le rôle ---
         if (res.data.role === 'admin') {
-          alert("🔓 Accès Admin: Vous avez l'accées .");
+          alert("🔓 Accès Admin: Vous avez l'accès.");
         } else {
           alert("👁️ Mode Consult: Accès limité.");
         }
@@ -47,7 +49,7 @@ function App() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3001/register', regData);
+      const res = await axios.post(`${API_URL}/register`, regData);
       if (res.data.success) {
         alert("Compte créé avec succès ! Tawa tnajem taamel login.");
         setIsRegistering(false);
@@ -60,7 +62,7 @@ function App() {
     const targetSN = sn || searchTerm;
     if (!targetSN) return;
     try {
-      const res = await axios.get(`http://localhost:3001/api/asset/${targetSN.trim()}`);
+      const res = await axios.get(`${API_URL}/api/asset/${targetSN.trim()}`);
       setSearchResult(res.data);
       setIsScanning(false);
       setIsEditing(false); 
@@ -70,7 +72,7 @@ function App() {
   // --- UPDATE ---
   const handleUpdate = async () => {
     try {
-      const res = await axios.post('http://localhost:3001/api/asset/update', {
+      const res = await axios.post(`${API_URL}/api/asset/update`, {
         sn: searchResult.Serial_Number,
         statut: editData.statut,
         it_comment: editData.it_comment
@@ -237,7 +239,6 @@ function App() {
             <div className="no-print">
               <h2 style={styles.cardTitle}>🏷️ Générateur de Stickers</h2>
               
-              {/* Message Alert lel Consult */}
               {localStorage.getItem('role') === 'consult' && (
                 <div style={{background:'#fee2e2', color:'#b91c1c', padding:'10px', borderRadius:'8px', marginBottom:'20px', fontSize:'14px'}}>
                   ⚠️ Accès limité: Vous n'avez pas l'autorisation de remplir ce formulaire.
@@ -283,7 +284,6 @@ function App() {
                 </div>
               </div>
               <div style={{display:'flex', gap:'15px', marginTop:'30px'}}>
-                {/* Button ma yodh-her ken lel Admin */}
                 {localStorage.getItem('role') === 'admin' && (
                   <button onClick={()=>setQrVisible(true)} style={styles.btnPrimary}>GÉNÉRER QR CODE</button>
                 )}
